@@ -1,0 +1,117 @@
+<div>Teachable Machine Image Model - p5.js and ml5.js</div>
+<script src="https://cdn.jsdelivr.net/npm/p5@latest/lib/p5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/p5@latest/lib/addons/p5.dom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ml5@latest/dist/ml5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/p5@latest/lib/addons/p5.sound.min.js"></script>
+<script type="text/javascript">
+  //Classifier Variable
+  let classifier;
+  //Model URL
+  let imageModelURL = 'https://teachablemachine.withgoogle.com/models/G3VUA-2ef/';
+  
+  //Video
+  let video;
+  let flippedVideo;
+  //To store the classification
+  let label = "";
+
+  // sounds
+  let happySound, sadSound, loveSound, sleepySound;
+
+  // load mp3 files
+  function preload() {
+    classifier = ml5.imageClassifier(imageModelURL + 'model.json');
+    happySound = loadSound('happymusic.mp3');
+    sadSound = loadSound('sadmusic.mp3');
+    loveSound = loadSound('lovemusic.mp3');
+    sleepySound = loadSound('sleepmusic.mp3');
+  }
+
+  function setup() {
+    createCanvas(320, 260);
+    // Create the video
+    video = createCapture(VIDEO);
+    video.size(320, 240);
+    video.hide();
+
+    flippedVideo = ml5.flipImage(video);
+    // Start classifying
+    classifyVideo();
+  }
+
+  function draw() {
+    background(0);
+    image(flippedVideo, 0, 0);
+
+    fill(255, 150, 157);
+    textSize(10);
+    textAlign(CENTER);
+    
+    //display quotes for each label
+    switch (label) {
+      case "happy":
+        text("You glow differently when you're actually happy", width / 2, height - 4);
+        if (!happySound.isPlaying()) {
+          happySound.play();
+          sadSound.stop();
+          loveSound.stop();
+          sleepySound.stop();
+        }
+        break;
+      case "sad":
+        text("Tears are words the mouth can;t say nor can the heart bear", width / 2, height - 4);
+        if (!sadSound.isPlaying()) {
+          sadSound.play();
+          happySound.stop();
+          loveSound.stop();
+          sleepySound.stop();
+        }
+        break;
+      case "love":
+        text("Do small things with great love", width / 2, height - 4);
+        if (!loveSound.isPlaying()) {
+          loveSound.play();
+          happySound.stop();
+          sadSound.stop();
+          sleepySound.stop();
+        }
+        break;
+      case "sleepy":
+        text("Sleep is the best meditation", width / 2, height - 4);
+        if (!sleepySound.isPlaying()) {
+          sleepySound.play();
+          happySound.stop();
+          sadSound.stop();
+          loveSound.stop();
+        }
+        break;
+      default:
+        text("How are you feeling...", width / 2, height - 4);
+        happySound.stop();
+        sadSound.stop();
+        loveSound.stop();
+        sleepySound.stop();
+    }
+  }
+
+  // Get a prediction for the current video frame
+  function classifyVideo() {
+    flippedVideo = ml5.flipImage(video);
+    classifier.classify(flippedVideo, gotResult);
+    flippedVideo.remove();
+  }
+
+  // When we get a result
+  function gotResult(error, results) {
+    // If there is an error
+    if (error) {
+      console.error(error);
+      return;
+    }
+    // The results are in an array ordered by confidence.
+    // console.log(results[0]);
+    label = results[0].label;
+    // Classify again!
+    classifyVideo();
+  }
+</script>
